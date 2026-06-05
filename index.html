@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Dash Score Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        select,
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        select:focus,
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .difficulty-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .difficulty-btn {
+            padding: 12px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-size: 0.95em;
+        }
+
+        .difficulty-btn:hover {
+            border-color: #667eea;
+        }
+
+        .difficulty-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .difficulty-btn.easy.active {
+            background: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+        .difficulty-btn.medium.active {
+            background: #FF9800;
+            border-color: #FF9800;
+        }
+
+        .difficulty-btn.hard.active {
+            background: #f44336;
+            border-color: #f44336;
+        }
+
+        button.calculate {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        button.calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button.calculate:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f5f5f5;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-label {
+            color: #666;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+
+        .result-score {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 15px 0;
+        }
+
+        .result-breakdown {
+            text-align: left;
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .breakdown-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 12px;
+            background: #ddd;
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background 0.3s;
+        }
+
+        .reset-btn:hover {
+            background: #ccc;
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #1565c0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 GD Score Calculator</h1>
+        <p class="subtitle">Calculate your Geometry Dash score</p>
+
+        <div class="info-box">
+            💡 Select difficulty and completion percentage to calculate your score
+        </div>
+
+        <form id="scoreForm">
+            <div class="form-group">
+                <label>Select Difficulty:</label>
+                <div class="difficulty-options">
+                    <button type="button" class="difficulty-btn easy" data-difficulty="easy">
+                        🟢 Easy
+                    </button>
+                    <button type="button" class="difficulty-btn medium" data-difficulty="medium">
+                        🟡 Medium
+                    </button>
+                    <button type="button" class="difficulty-btn hard" data-difficulty="hard">
+                        🔴 Hard
+                    </button>
+                </div>
+                <input type="hidden" id="difficulty" value="">
+            </div>
+
+            <div class="form-group">
+                <label for="completion">Completion Percentage:</label>
+                <input 
+                    type="number" 
+                    id="completion" 
+                    min="0" 
+                    max="100" 
+                    value="100" 
+                    placeholder="Enter completion %"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="attempts">Attempts:</label>
+                <input 
+                    type="number" 
+                    id="attempts" 
+                    min="1" 
+                    value="1" 
+                    placeholder="Enter number of attempts"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="calculate">Calculate Score</button>
+        </form>
+
+        <div class="result" id="result">
+            <p class="result-label">Your Score</p>
+            <div class="result-score" id="finalScore">0</div>
+            
+            <div class="result-breakdown">
+                <div class="breakdown-item">
+                    <span>Difficulty Multiplier:</span>
+                    <strong id="difficultyMultiplier">0x</strong>
+                </div>
+                <div class="breakdown-item">
+                    <span>Base Points:</span>
+                    <strong id="basePoints">0</strong>
+                </div>
+                <div class="breakdown-item">
+                    <span>Completion Bonus:</span>
+                    <strong id="completionBonus">0</strong>
+                </div>
+                <div class="breakdown-item">
+                    <span>Attempt Penalty:</span>
+                    <strong id="attemptPenalty">-0</strong>
+                </div>
+            </div>
+
+            <button type="button" class="reset-btn" onclick="resetForm()">← Calculate Another</button>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('scoreForm');
+        const difficultyInput = document.getElementById('difficulty');
+        const completionInput = document.getElementById('completion');
+        const attemptsInput = document.getElementById('attempts');
+        const resultDiv = document.getElementById('result');
+        const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+
+        const scoreConfig = {
+            easy: {
+                baseScore: 50,
+                multiplier: 1,
+                label: 'Easy'
+            },
+            medium: {
+                baseScore: 100,
+                multiplier: 1.5,
+                label: 'Medium'
+            },
+            hard: {
+                baseScore: 200,
+                multiplier: 2,
+                label: 'Hard'
+            }
+        };
+
+        // Difficulty selection
+        difficultyButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                difficultyButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                difficultyInput.value = btn.dataset.difficulty;
+            });
+        });
+
+        // Form submission
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const difficulty = difficultyInput.value;
+            const completion = parseInt(completionInput.value);
+            const attempts = parseInt(attemptsInput.value);
+
+            if (!difficulty) {
+                alert('Please select a difficulty level');
+                return;
+            }
+
+            if (completion < 0 || completion > 100) {
+                alert('Completion percentage must be between 0 and 100');
+                return;
+            }
+
+            // Calculate score
+            const config = scoreConfig[difficulty];
+            const basePoints = config.baseScore * config.multiplier;
+            const completionBonus = Math.floor((completion / 100) * basePoints);
+            const attemptPenalty = Math.max(0, (attempts - 1) * 5);
+            const finalScore = completionBonus - attemptPenalty;
+
+            // Display results
+            document.getElementById('finalScore').textContent = finalScore;
+            document.getElementById('difficultyMultiplier').textContent = `${config.multiplier}x (${config.label})`;
+            document.getElementById('basePoints').textContent = basePoints;
+            document.getElementById('completionBonus').textContent = completionBonus;
+            document.getElementById('attemptPenalty').textContent = `-${attemptPenalty}`;
+
+            resultDiv.classList.add('show');
+        });
+
+        function resetForm() {
+            form.reset();
+            difficultyInput.value = '';
+            difficultyButtons.forEach(b => b.classList.remove('active'));
+            resultDiv.classList.remove('show');
+            completionInput.value = '100';
+            attemptsInput.value = '1';
+        }
+    </script>
+</body>
+</html>
